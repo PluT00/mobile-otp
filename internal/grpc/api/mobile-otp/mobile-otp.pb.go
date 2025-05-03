@@ -21,107 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type IdType int32
-
-const (
-	IdType_ID_TYPE_UNKNOWN IdType = 0
-	IdType_ID_TYPE_NUMERIC IdType = 1
-	IdType_ID_TYPE_UUID    IdType = 2
-)
-
-// Enum value maps for IdType.
-var (
-	IdType_name = map[int32]string{
-		0: "ID_TYPE_UNKNOWN",
-		1: "ID_TYPE_NUMERIC",
-		2: "ID_TYPE_UUID",
-	}
-	IdType_value = map[string]int32{
-		"ID_TYPE_UNKNOWN": 0,
-		"ID_TYPE_NUMERIC": 1,
-		"ID_TYPE_UUID":    2,
-	}
-)
-
-func (x IdType) Enum() *IdType {
-	p := new(IdType)
-	*p = x
-	return p
-}
-
-func (x IdType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (IdType) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_mobile_otp_mobile_otp_proto_enumTypes[0].Descriptor()
-}
-
-func (IdType) Type() protoreflect.EnumType {
-	return &file_api_mobile_otp_mobile_otp_proto_enumTypes[0]
-}
-
-func (x IdType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use IdType.Descriptor instead.
-func (IdType) EnumDescriptor() ([]byte, []int) {
-	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{0}
-}
-
-type ID struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Type          IdType                 `protobuf:"varint,1,opt,name=type,proto3,enum=mobile.otpgrpc.IdType" json:"type,omitempty"`
-	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ID) Reset() {
-	*x = ID{}
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ID) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ID) ProtoMessage() {}
-
-func (x *ID) ProtoReflect() protoreflect.Message {
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ID.ProtoReflect.Descriptor instead.
-func (*ID) Descriptor() ([]byte, []int) {
-	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *ID) GetType() IdType {
-	if x != nil {
-		return x.Type
-	}
-	return IdType_ID_TYPE_UNKNOWN
-}
-
-func (x *ID) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
 type OTP struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          uint32                 `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -131,7 +30,7 @@ type OTP struct {
 
 func (x *OTP) Reset() {
 	*x = OTP{}
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[1]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -143,7 +42,7 @@ func (x *OTP) String() string {
 func (*OTP) ProtoMessage() {}
 
 func (x *OTP) ProtoReflect() protoreflect.Message {
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[1]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -156,7 +55,7 @@ func (x *OTP) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OTP.ProtoReflect.Descriptor instead.
 func (*OTP) Descriptor() ([]byte, []int) {
-	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{1}
+	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *OTP) GetCode() uint32 {
@@ -168,14 +67,14 @@ func (x *OTP) GetCode() uint32 {
 
 type CreateOTPRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            *ID                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOTPRequest) Reset() {
 	*x = CreateOTPRequest{}
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[2]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -187,7 +86,7 @@ func (x *CreateOTPRequest) String() string {
 func (*CreateOTPRequest) ProtoMessage() {}
 
 func (x *CreateOTPRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[2]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -200,14 +99,14 @@ func (x *CreateOTPRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOTPRequest.ProtoReflect.Descriptor instead.
 func (*CreateOTPRequest) Descriptor() ([]byte, []int) {
-	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{2}
+	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateOTPRequest) GetId() *ID {
+func (x *CreateOTPRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
-	return nil
+	return ""
 }
 
 type CreateOTPResponse struct {
@@ -219,7 +118,7 @@ type CreateOTPResponse struct {
 
 func (x *CreateOTPResponse) Reset() {
 	*x = CreateOTPResponse{}
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[3]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -231,7 +130,7 @@ func (x *CreateOTPResponse) String() string {
 func (*CreateOTPResponse) ProtoMessage() {}
 
 func (x *CreateOTPResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[3]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -244,7 +143,7 @@ func (x *CreateOTPResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOTPResponse.ProtoReflect.Descriptor instead.
 func (*CreateOTPResponse) Descriptor() ([]byte, []int) {
-	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{3}
+	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreateOTPResponse) GetSuccess() bool {
@@ -256,7 +155,7 @@ func (x *CreateOTPResponse) GetSuccess() bool {
 
 type CheckOTPRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            *ID                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Otp           *OTP                   `protobuf:"bytes,2,opt,name=otp,proto3" json:"otp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -264,7 +163,7 @@ type CheckOTPRequest struct {
 
 func (x *CheckOTPRequest) Reset() {
 	*x = CheckOTPRequest{}
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[4]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -276,7 +175,7 @@ func (x *CheckOTPRequest) String() string {
 func (*CheckOTPRequest) ProtoMessage() {}
 
 func (x *CheckOTPRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[4]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -289,14 +188,14 @@ func (x *CheckOTPRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckOTPRequest.ProtoReflect.Descriptor instead.
 func (*CheckOTPRequest) Descriptor() ([]byte, []int) {
-	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{4}
+	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *CheckOTPRequest) GetId() *ID {
+func (x *CheckOTPRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
-	return nil
+	return ""
 }
 
 func (x *CheckOTPRequest) GetOtp() *OTP {
@@ -315,7 +214,7 @@ type CheckOTPResponse struct {
 
 func (x *CheckOTPResponse) Reset() {
 	*x = CheckOTPResponse{}
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[5]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -327,7 +226,7 @@ func (x *CheckOTPResponse) String() string {
 func (*CheckOTPResponse) ProtoMessage() {}
 
 func (x *CheckOTPResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[5]
+	mi := &file_api_mobile_otp_mobile_otp_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +239,7 @@ func (x *CheckOTPResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckOTPResponse.ProtoReflect.Descriptor instead.
 func (*CheckOTPResponse) Descriptor() ([]byte, []int) {
-	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{5}
+	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CheckOTPResponse) GetOk() bool {
@@ -354,25 +253,18 @@ var File_api_mobile_otp_mobile_otp_proto protoreflect.FileDescriptor
 
 const file_api_mobile_otp_mobile_otp_proto_rawDesc = "" +
 	"\n" +
-	"\x1fapi/mobile-otp/mobile-otp.proto\x12\x0emobile.otpgrpc\"@\n" +
-	"\x02ID\x12*\n" +
-	"\x04type\x18\x01 \x01(\x0e2\x16.mobile.otpgrpc.IdTypeR\x04type\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id\"\x19\n" +
+	"\x1fapi/mobile-otp/mobile-otp.proto\x12\x0emobile.otpgrpc\"\x19\n" +
 	"\x03OTP\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\rR\x04code\"6\n" +
-	"\x10CreateOTPRequest\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.mobile.otpgrpc.IDR\x02id\"-\n" +
+	"\x04code\x18\x01 \x01(\rR\x04code\"\"\n" +
+	"\x10CreateOTPRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"-\n" +
 	"\x11CreateOTPResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"\\\n" +
-	"\x0fCheckOTPRequest\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.mobile.otpgrpc.IDR\x02id\x12%\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"H\n" +
+	"\x0fCheckOTPRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
 	"\x03otp\x18\x02 \x01(\v2\x13.mobile.otpgrpc.OTPR\x03otp\"\"\n" +
 	"\x10CheckOTPResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok*D\n" +
-	"\x06IdType\x12\x13\n" +
-	"\x0fID_TYPE_UNKNOWN\x10\x00\x12\x13\n" +
-	"\x0fID_TYPE_NUMERIC\x10\x01\x12\x10\n" +
-	"\fID_TYPE_UUID\x10\x022\xb0\x01\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok2\xb0\x01\n" +
 	"\tMobileOTP\x12R\n" +
 	"\tCreateOTP\x12 .mobile.otpgrpc.CreateOTPRequest\x1a!.mobile.otpgrpc.CreateOTPResponse\"\x00\x12O\n" +
 	"\bCheckOTP\x12\x1f.mobile.otpgrpc.CheckOTPRequest\x1a .mobile.otpgrpc.CheckOTPResponse\"\x00B5Z3github.com/PluT00/mobile-otp/api/mobile-otp;otpgrpcb\x06proto3"
@@ -389,31 +281,25 @@ func file_api_mobile_otp_mobile_otp_proto_rawDescGZIP() []byte {
 	return file_api_mobile_otp_mobile_otp_proto_rawDescData
 }
 
-var file_api_mobile_otp_mobile_otp_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_api_mobile_otp_mobile_otp_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_api_mobile_otp_mobile_otp_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_api_mobile_otp_mobile_otp_proto_goTypes = []any{
-	(IdType)(0),               // 0: mobile.otpgrpc.IdType
-	(*ID)(nil),                // 1: mobile.otpgrpc.ID
-	(*OTP)(nil),               // 2: mobile.otpgrpc.OTP
-	(*CreateOTPRequest)(nil),  // 3: mobile.otpgrpc.CreateOTPRequest
-	(*CreateOTPResponse)(nil), // 4: mobile.otpgrpc.CreateOTPResponse
-	(*CheckOTPRequest)(nil),   // 5: mobile.otpgrpc.CheckOTPRequest
-	(*CheckOTPResponse)(nil),  // 6: mobile.otpgrpc.CheckOTPResponse
+	(*OTP)(nil),               // 0: mobile.otpgrpc.OTP
+	(*CreateOTPRequest)(nil),  // 1: mobile.otpgrpc.CreateOTPRequest
+	(*CreateOTPResponse)(nil), // 2: mobile.otpgrpc.CreateOTPResponse
+	(*CheckOTPRequest)(nil),   // 3: mobile.otpgrpc.CheckOTPRequest
+	(*CheckOTPResponse)(nil),  // 4: mobile.otpgrpc.CheckOTPResponse
 }
 var file_api_mobile_otp_mobile_otp_proto_depIdxs = []int32{
-	0, // 0: mobile.otpgrpc.ID.type:type_name -> mobile.otpgrpc.IdType
-	1, // 1: mobile.otpgrpc.CreateOTPRequest.id:type_name -> mobile.otpgrpc.ID
-	1, // 2: mobile.otpgrpc.CheckOTPRequest.id:type_name -> mobile.otpgrpc.ID
-	2, // 3: mobile.otpgrpc.CheckOTPRequest.otp:type_name -> mobile.otpgrpc.OTP
-	3, // 4: mobile.otpgrpc.MobileOTP.CreateOTP:input_type -> mobile.otpgrpc.CreateOTPRequest
-	5, // 5: mobile.otpgrpc.MobileOTP.CheckOTP:input_type -> mobile.otpgrpc.CheckOTPRequest
-	4, // 6: mobile.otpgrpc.MobileOTP.CreateOTP:output_type -> mobile.otpgrpc.CreateOTPResponse
-	6, // 7: mobile.otpgrpc.MobileOTP.CheckOTP:output_type -> mobile.otpgrpc.CheckOTPResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0, // 0: mobile.otpgrpc.CheckOTPRequest.otp:type_name -> mobile.otpgrpc.OTP
+	1, // 1: mobile.otpgrpc.MobileOTP.CreateOTP:input_type -> mobile.otpgrpc.CreateOTPRequest
+	3, // 2: mobile.otpgrpc.MobileOTP.CheckOTP:input_type -> mobile.otpgrpc.CheckOTPRequest
+	2, // 3: mobile.otpgrpc.MobileOTP.CreateOTP:output_type -> mobile.otpgrpc.CreateOTPResponse
+	4, // 4: mobile.otpgrpc.MobileOTP.CheckOTP:output_type -> mobile.otpgrpc.CheckOTPResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_api_mobile_otp_mobile_otp_proto_init() }
@@ -426,14 +312,13 @@ func file_api_mobile_otp_mobile_otp_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_mobile_otp_mobile_otp_proto_rawDesc), len(file_api_mobile_otp_mobile_otp_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   6,
+			NumEnums:      0,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_api_mobile_otp_mobile_otp_proto_goTypes,
 		DependencyIndexes: file_api_mobile_otp_mobile_otp_proto_depIdxs,
-		EnumInfos:         file_api_mobile_otp_mobile_otp_proto_enumTypes,
 		MessageInfos:      file_api_mobile_otp_mobile_otp_proto_msgTypes,
 	}.Build()
 	File_api_mobile_otp_mobile_otp_proto = out.File

@@ -13,17 +13,6 @@ service MobileOTP {
 
 // ---------- Основные типы данных ----------
 
-enum IdType {
-  ID_TYPE_UNKNOWN = 0;
-  ID_TYPE_NUMERIC = 1;
-  ID_TYPE_UUID = 2;
-}
-
-message ID {
-  IdType type = 1;
-  string id = 2;
-}
-
 message OTP {
   uint32 code = 1;
 }
@@ -31,7 +20,7 @@ message OTP {
 // ---------- Операции генерации OTP ----------
 
 message CreateOTPRequest {
-  ID id = 1;
+  string id = 1;
 }
 
 message CreateOTPResponse {
@@ -41,7 +30,7 @@ message CreateOTPResponse {
 // ---------- Операции проверки OTP ----------
 
 message CheckOTPRequest {
-  ID id = 1;
+  string id = 1;
   OTP otp = 2;
 }
 
