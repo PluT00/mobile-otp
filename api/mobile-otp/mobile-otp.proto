@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package mobile.otpgrpc;
+
+option go_package = "github.com/PluT00/mobile-otp/api/mobile-otp;otpgrpc";
+
+service MobileOTP {
+  // CreateOTP - запрос на создание OTP для последующего запроса с клиента (например, мобильного телефона)
+  rpc CreateOTP(CreateOTPRequest) returns (CreateOTPResponse) {}
+  // CheckOTP - запрос на проверку правильности OTP кода, присланного основным сервисом
+  rpc CheckOTP(CheckOTPRequest) returns (CheckOTPResponse) {}
+}
+
+// ---------- Основные типы данных ----------
+
+enum IdType {
+  ID_TYPE_UNKNOWN = 0;
+  ID_TYPE_NUMERIC = 1;
+  ID_TYPE_UUID = 2;
+}
+
+message ID {
+  IdType type = 1;
+  string id = 2;
+}
+
+message OTP {
+  uint32 code = 1;
+}
+
+// ---------- Операции генерации OTP ----------
+
+message CreateOTPRequest {
+  ID id = 1;
+}
+
+message CreateOTPResponse {
+  bool success = 1;
+}
+
+// ---------- Операции проверки OTP ----------
+
+message CheckOTPRequest {
+  ID id = 1;
+  OTP otp = 2;
+}
+
+message CheckOTPResponse {
+  bool ok = 1;
+}
