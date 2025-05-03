@@ -1,3 +1,12 @@
-listen:
+grpc_listen:
   host: "localhost"
   port: "8080"
+  req_timeout_sec: 10
+
+otp:
+  len: 6
+  ttl_min: 3
+
+redis:
+  addr: "localhost:6342"
+  db: 0

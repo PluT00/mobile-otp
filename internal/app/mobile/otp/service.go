@@ -2,6 +2,7 @@ package otp
 
 import (
 	"context"
+
 	desc "github.com/PluT00/mobile-otp/internal/grpc/api/mobile-otp"
 )
 
@@ -22,6 +23,8 @@ type (
 	}
 )
 
-func NewMobileOTP() *Implementation {
-	return &Implementation{}
+func NewMobileOTP(createOTPUseCase CreateOTPUseCase) *Implementation {
+	return &Implementation{
+		createOTP: createOTPUseCase,
+	}
 }
