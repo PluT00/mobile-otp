@@ -3,6 +3,7 @@ module github.com/PluT00/mobile-otp
 go 1.24.1
 
 require (
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.8.0
 	github.com/spf13/viper v1.20.1
