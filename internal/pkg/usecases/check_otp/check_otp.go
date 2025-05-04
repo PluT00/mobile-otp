@@ -2,6 +2,7 @@ package checkotp
 
 import (
 	"context"
+
 	desc "github.com/PluT00/mobile-otp/internal/grpc/api/mobile-otp"
 )
 
