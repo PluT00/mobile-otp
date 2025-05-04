@@ -1,0 +1,35 @@
+services:
+  grpc-otp:
+    container_name: grpc-otp
+    build: .
+    restart: always
+    ports:
+      - "8080:8080"
+    working_dir: /app
+    depends_on:
+      redis:
+          condition: service_healthy
+    networks:
+      - app-network
+
+  redis:
+    container_name: redis-otp
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    volumes:
+      - redis-otp:/data
+    networks:
+      - app-network
+
+volumes:
+  redis-otp:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
