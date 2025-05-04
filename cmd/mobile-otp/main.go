@@ -16,6 +16,7 @@ import (
 	"github.com/PluT00/mobile-otp/internal/app/mobile/otp"
 	desc "github.com/PluT00/mobile-otp/internal/grpc/api/mobile-otp"
 	"github.com/PluT00/mobile-otp/internal/pkg/repositories"
+	checkotp "github.com/PluT00/mobile-otp/internal/pkg/usecases/check_otp"
 	createotp "github.com/PluT00/mobile-otp/internal/pkg/usecases/create_otp"
 )
 
@@ -37,10 +38,15 @@ func main() {
 	})
 
 	createOTPRepo := repositories.NewCreateOTPRepository(redisClient)
+	checkOTPRepo := repositories.NewCheckOTPRepository(redisClient)
 
 	createOTPUseCase := createotp.NewUseCase(createOTPRepo)
+	checkOTPUseCase := checkotp.NewUseCase(checkOTPRepo)
 
-	srv := otp.NewMobileOTP(createOTPUseCase)
+	srv := otp.NewMobileOTP(
+		createOTPUseCase,
+		checkOTPUseCase,
+	)
 
 	desc.RegisterMobileOTPServer(s, srv)
 	slog.Info("Registered MobileOTPServer")

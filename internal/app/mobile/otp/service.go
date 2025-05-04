@@ -23,8 +23,12 @@ type (
 	}
 )
 
-func NewMobileOTP(createOTPUseCase CreateOTPUseCase) *Implementation {
+func NewMobileOTP(
+	createOTPUseCase CreateOTPUseCase,
+	checkOTPUseCase CheckOTPUseCase,
+) *Implementation {
 	return &Implementation{
 		createOTP: createOTPUseCase,
+		checkOTP:  checkOTPUseCase,
 	}
 }

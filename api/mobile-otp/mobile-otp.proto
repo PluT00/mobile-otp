@@ -14,7 +14,7 @@ service MobileOTP {
 // ---------- Основные типы данных ----------
 
 message OTP {
-  uint32 code = 1;
+  string code = 1;
 }
 
 // ---------- Операции генерации OTP ----------

@@ -23,7 +23,7 @@ const (
 
 type OTP struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          uint32                 `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -58,11 +58,11 @@ func (*OTP) Descriptor() ([]byte, []int) {
 	return file_api_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *OTP) GetCode() uint32 {
+func (x *OTP) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
-	return 0
+	return ""
 }
 
 type CreateOTPRequest struct {
@@ -255,7 +255,7 @@ const file_api_mobile_otp_mobile_otp_proto_rawDesc = "" +
 	"\n" +
 	"\x1fapi/mobile-otp/mobile-otp.proto\x12\x0emobile.otpgrpc\"\x19\n" +
 	"\x03OTP\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\rR\x04code\"\"\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\"\"\n" +
 	"\x10CreateOTPRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"-\n" +
 	"\x11CreateOTPResponse\x12\x18\n" +
