@@ -1,6 +1,6 @@
 grpc_listen:
-  host: "localhost"
-  port: "8080"
+  host: "0.0.0.0"
+  port: "8080" # Change in docker-compose.yaml too
   req_timeout_sec: 10
 
 otp:
@@ -8,5 +8,5 @@ otp:
   ttl_min: 3
 
 redis:
-  addr: "localhost:6342"
+  addr: "redis:6379"
   db: 0
