@@ -1,12 +1,24 @@
 grpc_listen:
   host: "0.0.0.0"
+  port: "8082" # Change in docker-compose.yaml too
+  req_timeout_sec: 10
+
+http_listen:
+  host: "0.0.0.0"
   port: "8080" # Change in docker-compose.yaml too
   req_timeout_sec: 10
+
+swagger:
+  gw_swagger_json: "internal/grpc/github.com/PluT00/mobile-otp/api/mobile-otp/mobile-otp.swagger.json"
 
 otp:
   len: 6
   ttl_min: 3
+  max_retry: 5
 
 redis:
   addr: "redis:6379"
   db: 0
+
+jwt:
+  verify_url: "localhost:8081/verify-jwt"

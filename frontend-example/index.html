@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile OTP Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .otp {
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h1>Mobile OTP</h1>
+    <div class="input-group">
+        <label for="jwt">JWT Token:</label>
+        <input id="jwt" v-model="jwt" placeholder="Enter JWT token" />
+    </div>
+    <button @click="getOTP">Get Code</button>
+    <div v-if="otp" class="otp">OTP: {{ otp }}</div>
+    <div v-if="error" class="error">Error: {{ error }}</div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const { createApp, ref } = Vue;
+
+    createApp({
+        setup() {
+            const jwt = ref('');
+            const otp = ref('');
+            const error = ref('');
+
+            async function getOTP() {
+                otp.value = '';
+                error.value = '';
+
+                try {
+                    // Generate ECDH key pair (P-256)
+                    const keyPair = await crypto.subtle.generateKey(
+                        { name: 'ECDH', namedCurve: 'P-256' },
+                        true,
+                        ['deriveKey', 'deriveBits']
+                    );
+
+                    // Export public key as raw bytes
+                    const publicKeyRaw = await crypto.subtle.exportKey('raw', keyPair.publicKey);
+                    const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKeyRaw)));
+
+                    // Send POST request to /get-otp
+                    const response = await fetch('http://localhost:8080/get-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${jwt.value}`,
+                        },
+                        body: JSON.stringify({ public_key: publicKeyBase64 }),
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error('Request failed: success=false');
+                    }
+
+                    // Decode server public key
+                    const serverPubKeyBase64 = data.publicKey;
+                    try {
+                        const serverPubKeyBytes = Uint8Array.from(atob(serverPubKeyBase64), c => c.charCodeAt(0));
+                        const serverPubKey = await crypto.subtle.importKey(
+                            'raw',
+                            serverPubKeyBytes,
+                            { name: 'ECDH', namedCurve: 'P-256' },
+                            false,
+                            []
+                        );
+
+                        // Compute shared secret
+                        const sharedSecret = await crypto.subtle.deriveBits(
+                            { name: 'ECDH', public: serverPubKey },
+                            keyPair.privateKey,
+                            256
+                        );
+
+                        // Decode encrypted OTP
+                        const encryptedOTPBase64 = data.encryptedOtp;
+                        const encryptedOTP = Uint8Array.from(atob(encryptedOTPBase64), c => c.charCodeAt(0));
+
+                        // Import AES-GCM key (first 32 bytes of shared secret)
+                        const aesKey = await crypto.subtle.importKey(
+                            'raw',
+                            sharedSecret.slice(0, 32),
+                            { name: 'AES-GCM', length: 256 },
+                            false,
+                            ['decrypt']
+                        );
+
+                        // Decrypt OTP (nonce is first 12 bytes)
+                        const nonce = encryptedOTP.slice(0, 12);
+                        const ciphertext = encryptedOTP.slice(12);
+                        const decrypted = await crypto.subtle.decrypt(
+                            { name: 'AES-GCM', iv: nonce },
+                            aesKey,
+                            ciphertext
+                        );
+
+                        // Convert decrypted OTP to string
+                        otp.value = new TextDecoder().decode(decrypted);
+                    } catch (base64Err) {
+                        throw new Error(`Base64 decode failed: ${base64Err.message}`);
+                    }
+                } catch (err) {
+                    error.value = err.message;
+                    console.error('Error:', err);
+                }
+            }
+
+            return { jwt, otp, error, getOTP };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
