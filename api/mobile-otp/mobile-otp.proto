@@ -4,11 +4,21 @@ package mobile.otpgrpc;
 
 option go_package = "github.com/PluT00/mobile-otp/api/mobile-otp;otpgrpc";
 
+import "google/api/annotations.proto";
+
 service MobileOTP {
-  // CreateOTP - запрос на создание OTP для последующего запроса с клиента (например, мобильного телефона)
-  rpc CreateOTP(CreateOTPRequest) returns (CreateOTPResponse) {}
-  // CheckOTP - запрос на проверку правильности OTP кода, присланного основным сервисом
-  rpc CheckOTP(CheckOTPRequest) returns (CheckOTPResponse) {}
+  // GetOTP - запрос на генерацию и отправку OTP клиенту
+  rpc GetOTP(GetOTPRequest) returns (GetOTPResponse) {
+    option (google.api.http) = {
+      post: "/get-otp"
+      body: "*"
+    };
+  }
+
+  // NeedOTP - запрос на создание "заявки" на генерацию OTP при запросе определенным пользователем
+  rpc NeedOTP(NeedOTPRequest) returns (NeedOTPResponse) {}
+  // ValidateOTP - запрос на проверку правильности OTP кода, присланного основным сервисом
+  rpc ValidateOTP(ValidateOTPRequest) returns (ValidateOTPResponse) {}
 }
 
 // ---------- Основные типы данных ----------
@@ -19,21 +29,37 @@ message OTP {
 
 // ---------- Операции генерации OTP ----------
 
-message CreateOTPRequest {
+message NeedOTPRequest {
   string id = 1;
 }
 
-message CreateOTPResponse {
+message NeedOTPResponse {
   bool success = 1;
 }
 
 // ---------- Операции проверки OTP ----------
 
-message CheckOTPRequest {
+message ValidateOTPRequest {
   string id = 1;
   OTP otp = 2;
 }
 
-message CheckOTPResponse {
+message ValidateOTPResponse {
   bool ok = 1;
+}
+
+// ---------- Клиентские типы данных ----------
+
+message GetOTPRequest {
+  // Публичный ключ клиента (Base64)
+  string public_key = 1;
+}
+
+message GetOTPResponse {
+  // Зашифрованный OTP (Base64)
+  string encrypted_otp = 1;
+  // Публичный ключ сервера (Base64)
+  string public_key = 2;
+  // Успешность запроса - false в случае отсутствия заявки
+  bool success = 3;
 }

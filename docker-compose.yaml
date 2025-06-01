@@ -4,7 +4,8 @@ services:
     build: .
     restart: always
     ports:
-      - "8080:8080"
+      - "8082:8082"
+      - "0.0.0.0:8080:8080"
     working_dir: /app
     depends_on:
       redis:

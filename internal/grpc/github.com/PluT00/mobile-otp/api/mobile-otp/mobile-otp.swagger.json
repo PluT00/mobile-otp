@@ -1,0 +1,133 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "mobile-otp/mobile-otp.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "MobileOTP"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/get-otp": {
+      "post": {
+        "summary": "GetOTP - запрос на генерацию и отправку OTP клиенту",
+        "operationId": "MobileOTP_GetOTP",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/otpgrpcGetOTPResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/otpgrpcGetOTPRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MobileOTP"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "otpgrpcGetOTPRequest": {
+      "type": "object",
+      "properties": {
+        "publicKey": {
+          "type": "string",
+          "title": "Публичный ключ клиента (Base64)"
+        }
+      }
+    },
+    "otpgrpcGetOTPResponse": {
+      "type": "object",
+      "properties": {
+        "encryptedOtp": {
+          "type": "string",
+          "title": "Зашифрованный OTP (Base64)"
+        },
+        "publicKey": {
+          "type": "string",
+          "title": "Публичный ключ сервера (Base64)"
+        },
+        "success": {
+          "type": "boolean",
+          "title": "Успешность запроса - false в случае отсутствия заявки"
+        }
+      }
+    },
+    "otpgrpcNeedOTPResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "otpgrpcOTP": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      }
+    },
+    "otpgrpcValidateOTPResponse": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

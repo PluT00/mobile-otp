@@ -1,2 +1,6 @@
 .idea
 .env
+
+# TLS
+server.crt
+server.key
