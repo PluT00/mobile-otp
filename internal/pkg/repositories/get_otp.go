@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"time"
 )
@@ -36,7 +37,12 @@ func (r *GetOTPRepository) SetOTP(ctx context.Context, userId, otp string) error
 	ttl := viper.GetDuration("otp.ttl_min")
 	path := fmt.Sprintf("otp:%s", userId)
 
-	status := r.db.Set(ctx, path, otp, time.Minute*ttl)
+	hash, err := bcrypt.GenerateFromPassword([]byte(otp), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("bcrypt.GenerateFromPassword: %w", err)
+	}
+
+	status := r.db.Set(ctx, path, hash, time.Minute*ttl)
 	if status.Err() != nil {
 		slog.Error("Failed to set otp for user: " + userId)
 		return status.Err()

@@ -21,4 +21,4 @@ redis:
   db: 0
 
 jwt:
-  verify_url: "localhost:8081/verify-jwt"
+  verify_url: "http://host.docker.internal:8081/verify-jwt"

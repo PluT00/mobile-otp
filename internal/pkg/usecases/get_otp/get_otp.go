@@ -40,8 +40,12 @@ type (
 	}
 
 	AuthVerificationResponse struct {
-		Ok     bool   `json:"ok"`
+		Valid  bool   `json:"valid"`
 		UserId string `json:"user_id"`
+	}
+
+	AuthVerificationRequest struct {
+		JWT string `json:"jwt"`
 	}
 )
 
@@ -52,11 +56,10 @@ func NewUseCase(repository GetOTPRepository) *UseCase {
 }
 
 func (uc *UseCase) GetOTP(ctx context.Context, req *desc.GetOTPRequest) (*desc.GetOTPResponse, error) {
-	//userId, err := verifyJwtToken(ctx) // TODO: make jwtVerification service
-	userId := "user"
-	//if err != nil {
-	//	return nil, status.Error(codes.PermissionDenied, err.Error())
-	//}
+	userId, err := verifyJwtToken(ctx) // TODO: make jwtVerification service
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, err.Error())
+	}
 
 	var clientPubKey = &ecdh.PublicKey{}
 	curve := ecdh.P256()
@@ -158,18 +161,28 @@ func verifyJwtToken(ctx context.Context) (string, error) {
 
 	meta, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return "", errors.New("no metadata found")
+		return "", errors.New("metadata.FromIncomingContext: no metadata found")
 	}
-	token, ok := meta["authorization"]
-	if !ok {
-		return "", errors.New("no authorization found")
+	tokenMeta := meta.Get("Authorization")
+	if len(tokenMeta) == 0 {
+		return "", errors.New("meta.Get: no authorization found")
+	}
+	token := tokenMeta[0]
+	if token == "" {
+		return "", errors.New("token == \"\": no authorization found")
 	}
 
-	jsonData := []byte(fmt.Sprintf("{\"jwt\":\"%s\"", token))
+	reqData := &AuthVerificationRequest{
+		JWT: token,
+	}
+	jsonData, err := json.Marshal(reqData)
+	if err != nil {
+		return "", fmt.Errorf("json marshal: %v", err)
+	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("http.NewRequest: %v", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -177,24 +190,25 @@ func verifyJwtToken(ctx context.Context) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("client.Do: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading body:", err)
-		return "", err
+		return "", fmt.Errorf("io.ReadAll: %v", err)
 	}
 
 	var data AuthVerificationResponse
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("json.Unmarshal: %v", err)
 	}
 
-	if !data.Ok {
-		return "", errors.New("invalid token")
+	fmt.Println(data)
+
+	if !data.Valid {
+		return "", errors.New("!data.Valid: invalid token")
 	}
 
 	return data.UserId, nil

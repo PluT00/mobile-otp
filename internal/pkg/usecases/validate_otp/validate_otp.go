@@ -3,6 +3,7 @@ package validate_otp
 import (
 	"context"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -33,7 +34,8 @@ func (uc *UseCase) ValidateOTP(ctx context.Context, req *desc.ValidateOTPRequest
 		return &desc.ValidateOTPResponse{Ok: false}, status.Error(codes.NotFound, "uc.repository.GetOTP: OTP not found; you must request otp generation first")
 	}
 
-	if otp != req.GetOtp().GetCode() {
+	err := bcrypt.CompareHashAndPassword([]byte(otp), []byte(req.GetOtp().GetCode()))
+	if err != nil {
 		retry, err := uc.repository.IncrRetryOTP(ctx, req.GetId())
 		if err != nil {
 			return &desc.ValidateOTPResponse{Ok: false}, status.Errorf(codes.Internal, "uc.repository.IncrRetryOTP: %v", err)
