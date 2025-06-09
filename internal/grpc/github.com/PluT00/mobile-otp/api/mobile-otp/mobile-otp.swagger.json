@@ -18,7 +18,7 @@
   "paths": {
     "/get-otp": {
       "post": {
-        "summary": "GetOTP - запрос на генерацию и отправку OTP клиенту",
+        "summary": "GetOTP - send previously generated OTP to user",
         "operationId": "MobileOTP_GetOTP",
         "responses": {
           "200": {
@@ -48,15 +48,53 @@
           "MobileOTP"
         ]
       }
+    },
+    "/sync-keys": {
+      "post": {
+        "summary": "SyncKeys - sync ecdh public keys",
+        "operationId": "MobileOTP_SyncKeys",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/otpgrpcSyncKeysResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/otpgrpcSyncKeysRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MobileOTP"
+        ]
+      }
     }
   },
   "definitions": {
     "otpgrpcGetOTPRequest": {
       "type": "object",
       "properties": {
-        "publicKey": {
+        "encryptedJwt": {
           "type": "string",
-          "title": "Публичный ключ клиента (Base64)"
+          "title": "Encrypted JWT, must be with mobile=true flag"
+        },
+        "nonce": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Random number sent previously in SyncKeys request"
         }
       }
     },
@@ -65,15 +103,11 @@
       "properties": {
         "encryptedOtp": {
           "type": "string",
-          "title": "Зашифрованный OTP (Base64)"
-        },
-        "publicKey": {
-          "type": "string",
-          "title": "Публичный ключ сервера (Base64)"
+          "title": "Encrypted OTP (Base64)"
         },
         "success": {
           "type": "boolean",
-          "title": "Успешность запроса - false в случае отсутствия заявки"
+          "title": "Success flag; false if there is no request to generate OTP for that user"
         }
       }
     },
@@ -90,6 +124,29 @@
       "properties": {
         "code": {
           "type": "string"
+        }
+      }
+    },
+    "otpgrpcSyncKeysRequest": {
+      "type": "object",
+      "properties": {
+        "publicKey": {
+          "type": "string",
+          "title": "Client public key (Base64)"
+        },
+        "nonce": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Random number to find public key later in GetOTP request"
+        }
+      }
+    },
+    "otpgrpcSyncKeysResponse": {
+      "type": "object",
+      "properties": {
+        "publicKey": {
+          "type": "string",
+          "title": "Server public key (Base64)"
         }
       }
     },

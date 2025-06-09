@@ -19,23 +19,30 @@ type (
 		GetOTP(ctx context.Context, req *desc.GetOTPRequest) (*desc.GetOTPResponse, error)
 	}
 
+	SyncKeysUseCase interface {
+		SyncKeys(ctx context.Context, req *desc.SyncKeysRequest) (*desc.SyncKeysResponse, error)
+	}
+
 	Implementation struct {
 		desc.UnimplementedMobileOTPServer
 
 		needOTP     NeedOTPUseCase
 		validateOTP ValidateOTPUseCase
 		getOTP      GetOTPUseCase
+		syncKeys    SyncKeysUseCase
 	}
 )
 
 func NewMobileOTP(
 	needOTPUseCase NeedOTPUseCase,
 	validateOTPUseCase ValidateOTPUseCase,
-	getOTP GetOTPUseCase,
+	getOTPUseCase GetOTPUseCase,
+	syncKeysUseCase SyncKeysUseCase,
 ) *Implementation {
 	return &Implementation{
 		needOTP:     needOTPUseCase,
 		validateOTP: validateOTPUseCase,
-		getOTP:      getOTP,
+		getOTP:      getOTPUseCase,
+		syncKeys:    syncKeysUseCase,
 	}
 }

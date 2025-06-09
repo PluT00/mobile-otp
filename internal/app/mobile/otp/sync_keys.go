@@ -8,17 +8,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (i *Implementation) GetOTP(ctx context.Context, req *desc.GetOTPRequest) (*desc.GetOTPResponse, error) {
-	if err := validateGetOTPRequest(req); err != nil {
+func (i *Implementation) SyncKeys(ctx context.Context, req *desc.SyncKeysRequest) (*desc.SyncKeysResponse, error) {
+	if err := validateSyncKeysRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	return i.getOTP.GetOTP(ctx, req)
+	return i.syncKeys.SyncKeys(ctx, req)
 }
 
-func validateGetOTPRequest(req *desc.GetOTPRequest) error {
+func validateSyncKeysRequest(req *desc.SyncKeysRequest) error {
 	return validation.ValidateStruct(req,
-		validation.Field(&req.EncryptedJwt, validation.Required),
+		validation.Field(&req.PublicKey, validation.Required),
 		validation.Field(&req.Nonce, validation.Required),
 	)
 }

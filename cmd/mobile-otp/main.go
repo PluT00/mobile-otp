@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/PluT00/mobile-otp/internal/pkg/usecases/sync_keys"
 	"log"
 	"log/slog"
 	"net"
@@ -62,13 +64,15 @@ func main() {
 	needOTPRepo := repositories.NewNeedOTPRepository(redisClient)
 	validateOTPRepo := repositories.NewValidateOTPRepository(redisClient)
 	getOTPRepo := repositories.NewGetOTPRepository(redisClient)
+	syncKeysRepo := repositories.NewSyncKeysRepository(redisClient)
 
 	needOTPUseCase := need_otp.NewUseCase(needOTPRepo)
 	validateOTPUseCase := validate_otp.NewUseCase(validateOTPRepo)
 	getOTPUseCase := get_otp.NewUseCase(getOTPRepo)
+	syncKeysUseCase := sync_keys.NewUseCase(syncKeysRepo)
 
 	// Create MobileOTP service
-	srv := otp.NewMobileOTP(needOTPUseCase, validateOTPUseCase, getOTPUseCase)
+	srv := otp.NewMobileOTP(needOTPUseCase, validateOTPUseCase, getOTPUseCase, syncKeysUseCase)
 	desc.RegisterMobileOTPServer(s, srv)
 	slog.Info("Registered MobileOTPServer")
 
@@ -115,7 +119,7 @@ func main() {
 	httpRouter.Mount("/", gwMux)
 
 	// Serve Swagger JSON
-	swaggerPath := "./mobile-otp.swagger.json"
+	swaggerPath := viper.GetString("swagger.gw_swagger_json")
 	httpRouter.Get("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Serving Swagger JSON: " + swaggerPath)
 		http.ServeFile(w, r, swaggerPath)
@@ -131,7 +135,7 @@ func main() {
 	// Start servers in goroutines
 	go func() {
 		slog.Info("HTTP server listening on " + httpAddr)
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Failed to serve HTTP: %v", err)
 		}
 	}()

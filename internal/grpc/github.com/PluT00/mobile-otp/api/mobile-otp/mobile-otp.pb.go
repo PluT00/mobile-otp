@@ -250,17 +250,118 @@ func (x *ValidateOTPResponse) GetOk() bool {
 	return false
 }
 
+type SyncKeysRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Client public key (Base64)
+	PublicKey string `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	// Random number to find public key later in GetOTP request
+	Nonce         int32 `protobuf:"varint,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncKeysRequest) Reset() {
+	*x = SyncKeysRequest{}
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncKeysRequest) ProtoMessage() {}
+
+func (x *SyncKeysRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncKeysRequest.ProtoReflect.Descriptor instead.
+func (*SyncKeysRequest) Descriptor() ([]byte, []int) {
+	return file_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SyncKeysRequest) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+func (x *SyncKeysRequest) GetNonce() int32 {
+	if x != nil {
+		return x.Nonce
+	}
+	return 0
+}
+
+type SyncKeysResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Server public key (Base64)
+	PublicKey     string `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncKeysResponse) Reset() {
+	*x = SyncKeysResponse{}
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncKeysResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncKeysResponse) ProtoMessage() {}
+
+func (x *SyncKeysResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncKeysResponse.ProtoReflect.Descriptor instead.
+func (*SyncKeysResponse) Descriptor() ([]byte, []int) {
+	return file_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SyncKeysResponse) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
 type GetOTPRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Публичный ключ клиента (Base64)
-	PublicKey     string `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	// Encrypted JWT, must be with mobile=true flag
+	EncryptedJwt string `protobuf:"bytes,1,opt,name=encrypted_jwt,json=encryptedJwt,proto3" json:"encrypted_jwt,omitempty"`
+	// Random number sent previously in SyncKeys request
+	Nonce         int32 `protobuf:"varint,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetOTPRequest) Reset() {
 	*x = GetOTPRequest{}
-	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[5]
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -272,7 +373,7 @@ func (x *GetOTPRequest) String() string {
 func (*GetOTPRequest) ProtoMessage() {}
 
 func (x *GetOTPRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[5]
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -285,23 +386,28 @@ func (x *GetOTPRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOTPRequest.ProtoReflect.Descriptor instead.
 func (*GetOTPRequest) Descriptor() ([]byte, []int) {
-	return file_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{5}
+	return file_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *GetOTPRequest) GetPublicKey() string {
+func (x *GetOTPRequest) GetEncryptedJwt() string {
 	if x != nil {
-		return x.PublicKey
+		return x.EncryptedJwt
 	}
 	return ""
 }
 
+func (x *GetOTPRequest) GetNonce() int32 {
+	if x != nil {
+		return x.Nonce
+	}
+	return 0
+}
+
 type GetOTPResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Зашифрованный OTP (Base64)
+	// Encrypted OTP (Base64)
 	EncryptedOtp string `protobuf:"bytes,1,opt,name=encrypted_otp,json=encryptedOtp,proto3" json:"encrypted_otp,omitempty"`
-	// Публичный ключ сервера (Base64)
-	PublicKey string `protobuf:"bytes,2,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
-	// Успешность запроса - false в случае отсутствия заявки
+	// Success flag; false if there is no request to generate OTP for that user
 	Success       bool `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -309,7 +415,7 @@ type GetOTPResponse struct {
 
 func (x *GetOTPResponse) Reset() {
 	*x = GetOTPResponse{}
-	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[6]
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -321,7 +427,7 @@ func (x *GetOTPResponse) String() string {
 func (*GetOTPResponse) ProtoMessage() {}
 
 func (x *GetOTPResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[6]
+	mi := &file_mobile_otp_mobile_otp_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -334,19 +440,12 @@ func (x *GetOTPResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOTPResponse.ProtoReflect.Descriptor instead.
 func (*GetOTPResponse) Descriptor() ([]byte, []int) {
-	return file_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{6}
+	return file_mobile_otp_mobile_otp_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetOTPResponse) GetEncryptedOtp() string {
 	if x != nil {
 		return x.EncryptedOtp
-	}
-	return ""
-}
-
-func (x *GetOTPResponse) GetPublicKey() string {
-	if x != nil {
-		return x.PublicKey
 	}
 	return ""
 }
@@ -373,16 +472,23 @@ const file_mobile_otp_mobile_otp_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
 	"\x03otp\x18\x02 \x01(\v2\x13.mobile.otpgrpc.OTPR\x03otp\"%\n" +
 	"\x13ValidateOTPResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok\".\n" +
-	"\rGetOTPRequest\x12\x1d\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"F\n" +
+	"\x0fSyncKeysRequest\x12\x1d\n" +
 	"\n" +
-	"public_key\x18\x01 \x01(\tR\tpublicKey\"n\n" +
+	"public_key\x18\x01 \x01(\tR\tpublicKey\x12\x14\n" +
+	"\x05nonce\x18\x02 \x01(\x05R\x05nonce\"1\n" +
+	"\x10SyncKeysResponse\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x01 \x01(\tR\tpublicKey\"J\n" +
+	"\rGetOTPRequest\x12#\n" +
+	"\rencrypted_jwt\x18\x01 \x01(\tR\fencryptedJwt\x12\x14\n" +
+	"\x05nonce\x18\x02 \x01(\x05R\x05nonce\"O\n" +
 	"\x0eGetOTPResponse\x12#\n" +
-	"\rencrypted_otp\x18\x01 \x01(\tR\fencryptedOtp\x12\x1d\n" +
-	"\n" +
-	"public_key\x18\x02 \x01(\tR\tpublicKey\x12\x18\n" +
-	"\asuccess\x18\x03 \x01(\bR\asuccess2\x91\x02\n" +
-	"\tMobileOTP\x12\\\n" +
+	"\rencrypted_otp\x18\x01 \x01(\tR\fencryptedOtp\x12\x18\n" +
+	"\asuccess\x18\x03 \x01(\bR\asuccess2\xf7\x02\n" +
+	"\tMobileOTP\x12d\n" +
+	"\bSyncKeys\x12\x1f.mobile.otpgrpc.SyncKeysRequest\x1a .mobile.otpgrpc.SyncKeysResponse\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\"\n" +
+	"/sync-keys\x12\\\n" +
 	"\x06GetOTP\x12\x1d.mobile.otpgrpc.GetOTPRequest\x1a\x1e.mobile.otpgrpc.GetOTPResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\b/get-otp\x12L\n" +
 	"\aNeedOTP\x12\x1e.mobile.otpgrpc.NeedOTPRequest\x1a\x1f.mobile.otpgrpc.NeedOTPResponse\"\x00\x12X\n" +
 	"\vValidateOTP\x12\".mobile.otpgrpc.ValidateOTPRequest\x1a#.mobile.otpgrpc.ValidateOTPResponse\"\x00B5Z3github.com/PluT00/mobile-otp/api/mobile-otp;otpgrpcb\x06proto3"
@@ -399,26 +505,30 @@ func file_mobile_otp_mobile_otp_proto_rawDescGZIP() []byte {
 	return file_mobile_otp_mobile_otp_proto_rawDescData
 }
 
-var file_mobile_otp_mobile_otp_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_mobile_otp_mobile_otp_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_mobile_otp_mobile_otp_proto_goTypes = []any{
 	(*OTP)(nil),                 // 0: mobile.otpgrpc.OTP
 	(*NeedOTPRequest)(nil),      // 1: mobile.otpgrpc.NeedOTPRequest
 	(*NeedOTPResponse)(nil),     // 2: mobile.otpgrpc.NeedOTPResponse
 	(*ValidateOTPRequest)(nil),  // 3: mobile.otpgrpc.ValidateOTPRequest
 	(*ValidateOTPResponse)(nil), // 4: mobile.otpgrpc.ValidateOTPResponse
-	(*GetOTPRequest)(nil),       // 5: mobile.otpgrpc.GetOTPRequest
-	(*GetOTPResponse)(nil),      // 6: mobile.otpgrpc.GetOTPResponse
+	(*SyncKeysRequest)(nil),     // 5: mobile.otpgrpc.SyncKeysRequest
+	(*SyncKeysResponse)(nil),    // 6: mobile.otpgrpc.SyncKeysResponse
+	(*GetOTPRequest)(nil),       // 7: mobile.otpgrpc.GetOTPRequest
+	(*GetOTPResponse)(nil),      // 8: mobile.otpgrpc.GetOTPResponse
 }
 var file_mobile_otp_mobile_otp_proto_depIdxs = []int32{
 	0, // 0: mobile.otpgrpc.ValidateOTPRequest.otp:type_name -> mobile.otpgrpc.OTP
-	5, // 1: mobile.otpgrpc.MobileOTP.GetOTP:input_type -> mobile.otpgrpc.GetOTPRequest
-	1, // 2: mobile.otpgrpc.MobileOTP.NeedOTP:input_type -> mobile.otpgrpc.NeedOTPRequest
-	3, // 3: mobile.otpgrpc.MobileOTP.ValidateOTP:input_type -> mobile.otpgrpc.ValidateOTPRequest
-	6, // 4: mobile.otpgrpc.MobileOTP.GetOTP:output_type -> mobile.otpgrpc.GetOTPResponse
-	2, // 5: mobile.otpgrpc.MobileOTP.NeedOTP:output_type -> mobile.otpgrpc.NeedOTPResponse
-	4, // 6: mobile.otpgrpc.MobileOTP.ValidateOTP:output_type -> mobile.otpgrpc.ValidateOTPResponse
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
+	5, // 1: mobile.otpgrpc.MobileOTP.SyncKeys:input_type -> mobile.otpgrpc.SyncKeysRequest
+	7, // 2: mobile.otpgrpc.MobileOTP.GetOTP:input_type -> mobile.otpgrpc.GetOTPRequest
+	1, // 3: mobile.otpgrpc.MobileOTP.NeedOTP:input_type -> mobile.otpgrpc.NeedOTPRequest
+	3, // 4: mobile.otpgrpc.MobileOTP.ValidateOTP:input_type -> mobile.otpgrpc.ValidateOTPRequest
+	6, // 5: mobile.otpgrpc.MobileOTP.SyncKeys:output_type -> mobile.otpgrpc.SyncKeysResponse
+	8, // 6: mobile.otpgrpc.MobileOTP.GetOTP:output_type -> mobile.otpgrpc.GetOTPResponse
+	2, // 7: mobile.otpgrpc.MobileOTP.NeedOTP:output_type -> mobile.otpgrpc.NeedOTPResponse
+	4, // 8: mobile.otpgrpc.MobileOTP.ValidateOTP:output_type -> mobile.otpgrpc.ValidateOTPResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -435,7 +545,7 @@ func file_mobile_otp_mobile_otp_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_mobile_otp_mobile_otp_proto_rawDesc), len(file_mobile_otp_mobile_otp_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -7,7 +7,15 @@ option go_package = "github.com/PluT00/mobile-otp/api/mobile-otp;otpgrpc";
 import "google/api/annotations.proto";
 
 service MobileOTP {
-  // GetOTP - запрос на генерацию и отправку OTP клиенту
+  // SyncKeys - sync ecdh public keys
+  rpc SyncKeys(SyncKeysRequest) returns (SyncKeysResponse) {
+    option (google.api.http) = {
+      post: "/sync-keys"
+      body: "*"
+    };
+  }
+
+  // GetOTP - send previously generated OTP to user
   rpc GetOTP(GetOTPRequest) returns (GetOTPResponse) {
     option (google.api.http) = {
       post: "/get-otp"
@@ -15,19 +23,15 @@ service MobileOTP {
     };
   }
 
-  // NeedOTP - запрос на создание "заявки" на генерацию OTP при запросе определенным пользователем
+  // NeedOTP - request for generating OTP for exact user
   rpc NeedOTP(NeedOTPRequest) returns (NeedOTPResponse) {}
-  // ValidateOTP - запрос на проверку правильности OTP кода, присланного основным сервисом
+  // ValidateOTP - validate OTP sent by user into main service
   rpc ValidateOTP(ValidateOTPRequest) returns (ValidateOTPResponse) {}
 }
-
-// ---------- Основные типы данных ----------
 
 message OTP {
   string code = 1;
 }
-
-// ---------- Операции генерации OTP ----------
 
 message NeedOTPRequest {
   string id = 1;
@@ -36,8 +40,6 @@ message NeedOTPRequest {
 message NeedOTPResponse {
   bool success = 1;
 }
-
-// ---------- Операции проверки OTP ----------
 
 message ValidateOTPRequest {
   string id = 1;
@@ -48,18 +50,28 @@ message ValidateOTPResponse {
   bool ok = 1;
 }
 
-// ---------- Клиентские типы данных ----------
+message SyncKeysRequest {
+  // Client public key (Base64)
+  string public_key = 1;
+  // Random number to find public key later in GetOTP request
+  int32 nonce = 2;
+}
 
-message GetOTPRequest {
-  // Публичный ключ клиента (Base64)
+message SyncKeysResponse {
+  // Server public key (Base64)
   string public_key = 1;
 }
 
+message GetOTPRequest {
+  // Encrypted JWT, must be with mobile=true flag
+  string encrypted_jwt = 1;
+  // Random number sent previously in SyncKeys request
+  int32 nonce = 2;
+}
+
 message GetOTPResponse {
-  // Зашифрованный OTP (Base64)
+  // Encrypted OTP (Base64)
   string encrypted_otp = 1;
-  // Публичный ключ сервера (Base64)
-  string public_key = 2;
-  // Успешность запроса - false в случае отсутствия заявки
+  // Success flag; false if there is no request to generate OTP for that user
   bool success = 3;
 }

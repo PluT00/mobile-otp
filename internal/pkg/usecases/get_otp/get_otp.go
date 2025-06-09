@@ -1,9 +1,3 @@
-// Package otp provides the Mobile OTP gRPC service.
-// @title Mobile OTP API
-// @version 1.0
-// @description API for generating and validating one-time passwords (OTPs).
-// @host localhost:8080
-// @BasePath /
 package get_otp
 
 import (
@@ -17,15 +11,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	desc "github.com/PluT00/mobile-otp/internal/grpc/github.com/PluT00/mobile-otp/api/mobile-otp"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 	"io"
+	"log"
 	"log/slog"
 	"net/http"
 	"unicode/utf8"
+
+	"github.com/spf13/viper"
+	"golang.org/x/crypto/pbkdf2"
+	"golang.org/x/crypto/sha3"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	desc "github.com/PluT00/mobile-otp/internal/grpc/github.com/PluT00/mobile-otp/api/mobile-otp"
+	"github.com/PluT00/mobile-otp/internal/pkg/models"
 )
 
 type (
@@ -33,6 +32,8 @@ type (
 		GetNeedOTP(ctx context.Context, userId string) (bool, error)
 		SetOTP(ctx context.Context, userId, otp string) error
 		DeleteNeedOTP(ctx context.Context, userId string)
+		GetKeys(ctx context.Context, nonce int32) (*models.Keys, error)
+		DeleteKeys(ctx context.Context, nonce int32)
 	}
 
 	UseCase struct {
@@ -42,6 +43,7 @@ type (
 	AuthVerificationResponse struct {
 		Valid  bool   `json:"valid"`
 		UserId string `json:"user_id"`
+		Mobile bool   `json:"mobile"`
 	}
 
 	AuthVerificationRequest struct {
@@ -56,23 +58,56 @@ func NewUseCase(repository GetOTPRepository) *UseCase {
 }
 
 func (uc *UseCase) GetOTP(ctx context.Context, req *desc.GetOTPRequest) (*desc.GetOTPResponse, error) {
-	userId, err := verifyJwtToken(ctx) // TODO: make jwtVerification service
+	defer uc.repository.DeleteKeys(ctx, req.Nonce)
+
+	keys, err := uc.repository.GetKeys(ctx, req.Nonce)
 	if err != nil {
-		return nil, status.Error(codes.PermissionDenied, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, "failed to get keys: %v", err)
 	}
 
-	var clientPubKey = &ecdh.PublicKey{}
-	curve := ecdh.P256()
-	if req.GetPublicKey() != "test" {
-		clientPubKeyBytes, err := base64.StdEncoding.DecodeString(req.PublicKey)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid public key: %v", err)
-		}
+	if keys.ClientPubKey == "" || keys.ServerPrivKey == "" || keys.ServerPubKey == "" {
+		slog.Error("Incomplete keys for nonce: ", req.Nonce)
+		return nil, status.Errorf(codes.InvalidArgument, "incomplete keys")
+	}
 
-		clientPubKey, err = curve.NewPublicKey(clientPubKeyBytes)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "failed to parse public key: %v", err)
-		}
+	// Parse server private key
+	serverPrivKeyBytes, err := base64.StdEncoding.DecodeString(keys.ServerPrivKey)
+	if err != nil {
+		slog.Error("Failed to decode private key: ", err)
+		return nil, status.Errorf(codes.Internal, "failed to decode private key: %v", err)
+	}
+	privKey, err := ecdh.P256().NewPrivateKey(serverPrivKeyBytes)
+	if err != nil {
+		slog.Error("Failed to parse private key: ", err)
+		return nil, status.Errorf(codes.Internal, "failed to parse private key: %v", err)
+	}
+
+	// Parse client public key
+	clientPubKeyBytes, err := base64.StdEncoding.DecodeString(keys.ClientPubKey)
+	if err != nil || len(clientPubKeyBytes) != 65 || clientPubKeyBytes[0] != 0x04 {
+		log.Printf("Invalid client public key: %v", err)
+		return nil, status.Errorf(codes.Internal, "invalid client public key")
+	}
+	clientPubKey, err := ecdh.P256().NewPublicKey(clientPubKeyBytes)
+	if err != nil {
+		log.Printf("Failed to parse client public key: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to parse client public key: %v", err)
+	}
+
+	sharedSecret, err := privKey.ECDH(clientPubKey)
+	if err != nil {
+		log.Printf("Failed to compute shared secret: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to compute shared secret: %v", err)
+	}
+
+	plainJwt, err := decodeJwt(sharedSecret, req.EncryptedJwt)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to decode jwt: %v", err)
+	}
+
+	userId, err := verifyJwtToken(ctx, plainJwt)
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
 
 	needOTP, err := uc.repository.GetNeedOTP(ctx, userId)
@@ -87,17 +122,6 @@ func (uc *UseCase) GetOTP(ctx context.Context, req *desc.GetOTPRequest) (*desc.G
 	newOtp := genOTP()
 	err = uc.repository.SetOTP(ctx, userId, newOtp)
 
-	serverPrivateKey, err := curve.GenerateKey(rand.Reader)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	serverPublicKey := serverPrivateKey.PublicKey()
-
-	sharedSecret, err := serverPrivateKey.ECDH(clientPubKey)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
 	encryptedOTP, err := encryptAESGCM(sharedSecret, []byte(newOtp))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -110,37 +134,75 @@ func (uc *UseCase) GetOTP(ctx context.Context, req *desc.GetOTPRequest) (*desc.G
 		return &desc.GetOTPResponse{Success: false}, fmt.Errorf("invalid Base64 encoding for encrypted OTP")
 	}
 
-	serverPubKeyBytes := serverPublicKey.Bytes()
-	serverPubKeyBase64 := base64.StdEncoding.EncodeToString(serverPubKeyBytes)
-	if !utf8.ValidString(serverPubKeyBase64) {
-		slog.Error("Base64-encoded server public key contains invalid UTF-8")
-		return &desc.GetOTPResponse{Success: false}, fmt.Errorf("invalid Base64 encoding for public key")
-	}
-
 	return &desc.GetOTPResponse{
 		EncryptedOtp: encodedEncryptedOTP,
-		PublicKey:    serverPubKeyBase64,
 		Success:      true,
 	}, nil
 }
 
-func encryptAESGCM(key, plaintext []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key[:32])
+func decodeJwt(sharedSecret []byte, encryptedJWT string) (string, error) {
+	log.Printf("Encrypted JWT: %s", encryptedJWT)
+	log.Printf("Shared Secret (Hex): %x", sharedSecret)
+	jwtKey := pbkdf2.Key(sharedSecret, []byte("otp-encryption-salt"), 1000, 32, sha3.New256)
+	log.Printf("JWT Key (Hex): %x", jwtKey)
+	encryptedJwtBytes, err := base64.StdEncoding.DecodeString(encryptedJWT)
 	if err != nil {
+		log.Printf("Failed to decode encrypted JWT: %v", err)
+		return "", fmt.Errorf("invalid encrypted JWT")
+	}
+	if len(encryptedJwtBytes) < 12 {
+		log.Printf("Encrypted JWT too short")
+		return "", fmt.Errorf("invalid encrypted JWT")
+	}
+	nonce := encryptedJwtBytes[:12]
+	ciphertext := encryptedJwtBytes[12:]
+	log.Printf("JWT Nonce (Hex): %x", nonce)
+	cipherJwt, err := aes.NewCipher(jwtKey)
+	if err != nil {
+		log.Printf("Failed to create cipher for JWT: %v", err)
+		return "", fmt.Errorf("server error")
+	}
+	gcm, err := cipher.NewGCM(cipherJwt)
+	if err != nil {
+		log.Printf("Failed to create GCM for JWT: %v", err)
+		return "", fmt.Errorf("server error")
+	}
+	plainJwtBytes, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		log.Printf("Failed to decrypt JWT: %v", err)
+		return "", fmt.Errorf("invalid encrypted JWT")
+	}
+	log.Printf("Decrypted JWT: %s", string(plainJwtBytes))
+	return string(plainJwtBytes), nil
+}
+
+func encryptAESGCM(sharedSecret, plaintext []byte) ([]byte, error) {
+	// Derive key using PBKDF2 with SHA3-256
+	key := pbkdf2.Key(sharedSecret, []byte("otp-encryption-salt"), 1000, 32, sha3.New256)
+	slog.Info("Derived Key (Hex): %x", key)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		slog.Error("Failed to create cipher: %v", err)
 		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
+		slog.Error("Failed to create GCM: %v", err)
 		return nil, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err := rand.Read(nonce); err != nil {
+		slog.Error("Failed to generate nonce: %v", err)
 		return nil, err
 	}
+	slog.Info("Nonce (Hex): %x", nonce)
 
-	return gcm.Seal(nonce, nonce, plaintext, nil), nil
+	ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
+	slog.Info("Encrypted Data (Hex): %x, Length: %d", ciphertext, len(ciphertext))
+	return ciphertext, nil
 }
 
 // genOTP - Генерация криптографически безопасного OTP длины установленной в конфиге
@@ -156,24 +218,11 @@ func genOTP() string {
 	return string(bytes_rand)
 }
 
-func verifyJwtToken(ctx context.Context) (string, error) {
+func verifyJwtToken(_ context.Context, jwt string) (string, error) {
 	url := viper.GetString("jwt.verify_url")
 
-	meta, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", errors.New("metadata.FromIncomingContext: no metadata found")
-	}
-	tokenMeta := meta.Get("Authorization")
-	if len(tokenMeta) == 0 {
-		return "", errors.New("meta.Get: no authorization found")
-	}
-	token := tokenMeta[0]
-	if token == "" {
-		return "", errors.New("token == \"\": no authorization found")
-	}
-
 	reqData := &AuthVerificationRequest{
-		JWT: token,
+		JWT: "Bearer " + jwt,
 	}
 	jsonData, err := json.Marshal(reqData)
 	if err != nil {
@@ -209,6 +258,9 @@ func verifyJwtToken(ctx context.Context) (string, error) {
 
 	if !data.Valid {
 		return "", errors.New("!data.Valid: invalid token")
+	}
+	if !data.Mobile {
+		return "", errors.New("!data.Mobile: invalid token")
 	}
 
 	return data.UserId, nil

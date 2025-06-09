@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	MobileOTP_SyncKeys_FullMethodName    = "/mobile.otpgrpc.MobileOTP/SyncKeys"
 	MobileOTP_GetOTP_FullMethodName      = "/mobile.otpgrpc.MobileOTP/GetOTP"
 	MobileOTP_NeedOTP_FullMethodName     = "/mobile.otpgrpc.MobileOTP/NeedOTP"
 	MobileOTP_ValidateOTP_FullMethodName = "/mobile.otpgrpc.MobileOTP/ValidateOTP"
@@ -28,11 +29,13 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MobileOTPClient interface {
-	// GetOTP - запрос на генерацию и отправку OTP клиенту
+	// SyncKeys - sync ecdh public keys
+	SyncKeys(ctx context.Context, in *SyncKeysRequest, opts ...grpc.CallOption) (*SyncKeysResponse, error)
+	// GetOTP - send previously generated OTP to user
 	GetOTP(ctx context.Context, in *GetOTPRequest, opts ...grpc.CallOption) (*GetOTPResponse, error)
-	// NeedOTP - запрос на создание "заявки" на генерацию OTP при запросе определенным пользователем
+	// NeedOTP - request for generating OTP for exact user
 	NeedOTP(ctx context.Context, in *NeedOTPRequest, opts ...grpc.CallOption) (*NeedOTPResponse, error)
-	// ValidateOTP - запрос на проверку правильности OTP кода, присланного основным сервисом
+	// ValidateOTP - validate OTP sent by user into main service
 	ValidateOTP(ctx context.Context, in *ValidateOTPRequest, opts ...grpc.CallOption) (*ValidateOTPResponse, error)
 }
 
@@ -42,6 +45,16 @@ type mobileOTPClient struct {
 
 func NewMobileOTPClient(cc grpc.ClientConnInterface) MobileOTPClient {
 	return &mobileOTPClient{cc}
+}
+
+func (c *mobileOTPClient) SyncKeys(ctx context.Context, in *SyncKeysRequest, opts ...grpc.CallOption) (*SyncKeysResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SyncKeysResponse)
+	err := c.cc.Invoke(ctx, MobileOTP_SyncKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *mobileOTPClient) GetOTP(ctx context.Context, in *GetOTPRequest, opts ...grpc.CallOption) (*GetOTPResponse, error) {
@@ -78,11 +91,13 @@ func (c *mobileOTPClient) ValidateOTP(ctx context.Context, in *ValidateOTPReques
 // All implementations must embed UnimplementedMobileOTPServer
 // for forward compatibility.
 type MobileOTPServer interface {
-	// GetOTP - запрос на генерацию и отправку OTP клиенту
+	// SyncKeys - sync ecdh public keys
+	SyncKeys(context.Context, *SyncKeysRequest) (*SyncKeysResponse, error)
+	// GetOTP - send previously generated OTP to user
 	GetOTP(context.Context, *GetOTPRequest) (*GetOTPResponse, error)
-	// NeedOTP - запрос на создание "заявки" на генерацию OTP при запросе определенным пользователем
+	// NeedOTP - request for generating OTP for exact user
 	NeedOTP(context.Context, *NeedOTPRequest) (*NeedOTPResponse, error)
-	// ValidateOTP - запрос на проверку правильности OTP кода, присланного основным сервисом
+	// ValidateOTP - validate OTP sent by user into main service
 	ValidateOTP(context.Context, *ValidateOTPRequest) (*ValidateOTPResponse, error)
 	mustEmbedUnimplementedMobileOTPServer()
 }
@@ -94,6 +109,9 @@ type MobileOTPServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMobileOTPServer struct{}
 
+func (UnimplementedMobileOTPServer) SyncKeys(context.Context, *SyncKeysRequest) (*SyncKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncKeys not implemented")
+}
 func (UnimplementedMobileOTPServer) GetOTP(context.Context, *GetOTPRequest) (*GetOTPResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOTP not implemented")
 }
@@ -122,6 +140,24 @@ func RegisterMobileOTPServer(s grpc.ServiceRegistrar, srv MobileOTPServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&MobileOTP_ServiceDesc, srv)
+}
+
+func _MobileOTP_SyncKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MobileOTPServer).SyncKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MobileOTP_SyncKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MobileOTPServer).SyncKeys(ctx, req.(*SyncKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _MobileOTP_GetOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -185,6 +221,10 @@ var MobileOTP_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "mobile.otpgrpc.MobileOTP",
 	HandlerType: (*MobileOTPServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SyncKeys",
+			Handler:    _MobileOTP_SyncKeys_Handler,
+		},
 		{
 			MethodName: "GetOTP",
 			Handler:    _MobileOTP_GetOTP_Handler,

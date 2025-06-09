@@ -40,8 +40,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun OTPScreen(viewModel: OTPViewModel = viewModel()) {
     var ipAddress by remember { mutableStateOf(TextFieldValue("192.168.1.82")) }
-    var username by remember { mutableStateOf(TextFieldValue(""))}
-    var password by remember { mutableStateOf(TextFieldValue(""))}
+    var username by remember { mutableStateOf(TextFieldValue("")) }
+    var password by remember { mutableStateOf(TextFieldValue("")) }
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
@@ -59,26 +59,24 @@ fun OTPScreen(viewModel: OTPViewModel = viewModel()) {
             onValueChange = { ipAddress = it },
             label = { Text("Server IP Address") },
             modifier = Modifier.fillMaxWidth(),
-            isError = viewModel.errorOTP.value.contains("Invalid IP"),
-            supportingText = { if (viewModel.errorOTP.value.contains("Invalid IP")) Text("Enter valid IPv4") }
+            isError = viewModel.errorOTP.value.contains("Invalid IP") || viewModel.errorLogin.value.contains("Invalid IP"),
+            supportingText = { if (viewModel.errorOTP.value.contains("Invalid IP") || viewModel.errorLogin.value.contains("Invalid IP")) Text("Enter valid IPv4") }
+        )
+
+        // Login Status
+        Text(
+            "Status: ${if (viewModel.isLoggedIn.value) "Logged In" else "Not Logged In"}",
+            color = if (viewModel.isLoggedIn.value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            fontSize = 16.sp
         )
 
         HorizontalDivider()
 
-        // JWT Input
-        OutlinedTextField(
-            value = viewModel.jwt.value,
-            onValueChange = { viewModel.jwt.value = it },
-            label = { Text("JWT Token") },
-            modifier = Modifier.fillMaxWidth(),
-            readOnly = true
-        )
-
         // Get OTP Button
         Button(
-            onClick = { viewModel.getOTP(ipAddress.text, viewModel.jwt.value) },
+            onClick = { viewModel.getOTP(ipAddress.text) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = ipAddress.text.isNotBlank() && viewModel.jwt.value.isNotBlank()
+            enabled = ipAddress.text.isNotBlank() && viewModel.isLoggedIn.value
         ) {
             Text("Get OTP")
         }
@@ -111,7 +109,7 @@ fun OTPScreen(viewModel: OTPViewModel = viewModel()) {
             onValueChange = { username = it },
             label = { Text("Username") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
+            singleLine = true
         )
 
         // Password input
@@ -123,29 +121,24 @@ fun OTPScreen(viewModel: OTPViewModel = viewModel()) {
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
-                val image = if (passwordVisible)
-                    Icons.Filled.Visibility
-                else Icons.Filled.VisibilityOff
-
-                // Please provide localized description for accessibility services
+                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                 val description = if (passwordVisible) "Hide password" else "Show password"
-
-                IconButton(onClick = {passwordVisible = !passwordVisible}){
-                    Icon(imageVector  = image, description)
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = image, contentDescription = description)
                 }
             },
-            singleLine = true,
+            singleLine = true
         )
 
         // Login Button
         Button(
-            onClick = { viewModel.login(ipAddress.text, username.text, password.text) },
+            onClick = { viewModel.login(ipAddress.text, username.text, password.text) { /* No action needed */ } },
             modifier = Modifier.fillMaxWidth(),
-            enabled = username.text.isNotBlank()
-                    && password.text.isNotBlank()
-                    && username.text.length >= 3
-                    && password.text.length >= 6
-                    && ipAddress.text.isNotBlank()
+            enabled = username.text.isNotBlank() &&
+                    password.text.isNotBlank() &&
+                    username.text.length >= 3 &&
+                    password.text.length >= 6 &&
+                    ipAddress.text.isNotBlank()
         ) {
             Text("Login")
         }

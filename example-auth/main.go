@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"log"
@@ -50,6 +51,7 @@ type LoginResponse struct {
 type VerifyJWTResponse struct {
 	Valid  bool   `json:"valid"`
 	UserID string `json:"user_id"`
+	Mobile bool   `json:"mobile"`
 }
 
 func main() {
@@ -186,7 +188,7 @@ func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
 	err := app.DB.QueryRowContext(r.Context(),
 		"SELECT id, password_hash FROM users WHERE username = $1", req.Username).
 		Scan(&userID, &passwordHash)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		respondJSON(w, http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		return
 	} else if err != nil {
@@ -234,6 +236,7 @@ func (app *App) handleVerifyJWT(w http.ResponseWriter, r *http.Request) {
 		}
 		return []byte(app.Config.JWTSecret), nil
 	})
+	log.Printf("Token: %+v", token)
 
 	if err != nil {
 		log.Printf("JWT parsing error: %v", err)
@@ -260,6 +263,15 @@ func (app *App) handleVerifyJWT(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var mobile bool
+	switch v := (*claims)["mobile"].(type) {
+	case bool:
+		mobile = v
+	default:
+		log.Printf("Invalid mobile type: %T, value: %v", (*claims)["mobile"], (*claims)["mobile"])
+		respondJSON(w, http.StatusOK, VerifyJWTResponse{Valid: false, UserID: ""})
+	}
+
 	// Verify expiration
 	if exp, ok := (*claims)["exp"].(float64); ok {
 		if time.Now().Unix() > int64(exp) {
@@ -273,13 +285,14 @@ func (app *App) handleVerifyJWT(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("JWT verified successfully, user_id: %d", userID)
-	respondJSON(w, http.StatusOK, VerifyJWTResponse{Valid: true, UserID: userID})
+	log.Printf("JWT verified successfully, user_id: %s", userID)
+	respondJSON(w, http.StatusOK, VerifyJWTResponse{Valid: true, UserID: userID, Mobile: mobile})
 }
 
 func generateJWT(userID, secret string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
+		"mobile":  true,
 		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
